@@ -20,16 +20,22 @@ func main() {
 	qu := make(chan int, 100)
 
 	go func() {
-		for {
+		ticker := time.NewTicker(200 * time.Millisecond)
+		defer ticker.Stop()
+
+		for range ticker.C {
 			qu <- rand.Intn(9) + 1
 		}
 	}()
 
 	go func() {
-		for {
-			time.Sleep(10 * time.Second)
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
 			sum := 0
 			count := 0
+
 			draining := true
 			for draining {
 				select {

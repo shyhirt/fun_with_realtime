@@ -1,4 +1,6 @@
-module funWithRealtime
+module fun_with_realtime
+
+
 
 go 1.24
 

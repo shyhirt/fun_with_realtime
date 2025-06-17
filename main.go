@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"funWithRealtime/hub"
+	"fun_with_realtime/hub"
 	"log"
 	"math/rand"
 	"net/http"

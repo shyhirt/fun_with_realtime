@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fun_with_realtime/hub"
+	"funWithRealtime/hub"
 	"log"
 	"math/rand"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -18,35 +17,34 @@ func main() {
 		hub.Serve(h, w, r)
 	})
 
-	var (
-		qu []int
-		mu sync.Mutex
-	)
+	qu := make(chan int, 100)
 
 	go func() {
 		for {
-			mu.Lock()
-			qu = append(qu, rand.Intn(9)+1)
-			mu.Unlock()
-			time.Sleep(200 * time.Millisecond)
+			qu <- rand.Intn(9) + 1
 		}
 	}()
+
 	go func() {
 		for {
 			time.Sleep(10 * time.Second)
-
-			mu.Lock()
 			sum := 0
-			for _, v := range qu {
-				sum += v
+			count := 0
+			draining := true
+			for draining {
+				select {
+				case v := <-qu:
+					sum += v
+					count++
+				default:
+					draining = false
+				}
 			}
-			count := len(qu)
-			qu = qu[:0]
-			mu.Unlock()
 
 			if count == 0 {
 				continue
 			}
+
 			avg := float64(sum) / float64(count)
 
 			msg, _ := json.Marshal(map[string]any{
@@ -57,6 +55,7 @@ func main() {
 			log.Println("Sent avg:", avg)
 		}
 	}()
+
 	log.Println("Server started at :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
